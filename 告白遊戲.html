@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>告白小遊戲</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; background: #fdf6f6; color: #333; }
+    .question { font-size: 1.4em; margin: 20px 0; }
+    .btn { display: inline-block; padding: 10px 20px; margin: 10px; border: 2px solid #333;
+           border-radius: 8px; cursor: pointer; background: #fff; transition: background 0.2s; }
+    .btn:hover { background: #fdd; }
+    .lives { margin: 20px 0; font-weight: bold; color: crimson; }
+    .end { margin-top: 30px; font-size: 1.5em; color: darkgreen; }
+  </style>
+</head>
+<body>
+  <h1>💖 能不能拿到第二個禮物就看你自己了 💖</h1>
+  <div class="lives">剩餘亂達次數：<span id="lives">3</span></div>
+  <div class="question" id="question"></div>
+  <div>
+    <button class="btn" id="optA"></button>
+    <button class="btn" id="optB"></button>
+  </div>
+  <div class="end" id="end"></div>
+
+  <script>
+    const QUESTIONS = [
+      { q: "想要第二個禮物嗎", a:["考慮一下","看你的表現"] , correct:1 },
+      { q: "第一次見面我們在哪裡？", a:["新左營站","左營站"], correct:0 },
+      { q: "今天是甚麼日子", a:["李小寶的生日","世界愛愛日"], correct:1 },
+      { q: "我們認識多久第一次約會", a:["20天","27天"], correct:0 },
+      { q: "李小寶的開學平均尻尻頻率", a:["半天一次","兩天一次"], correct:1 },
+      { q: "誰比較帥", a:["李小寶","車銀優"], correct:1 },
+      { q: "李小寶是用哪隻手尻尻", a:["左手","右手"], correct:0 },
+      { q: "李小寶會不會乖乖", a:["一定會很乖乖","會很乖乖"], correct:0 },
+      { q: "以後吵架誰對", a:["倩寶","李想成找死嗎哪來的第二個選項"], correct:0 },
+      { q: "抽到一樣的禮物怎麼辦", a:["跟第二個禮物沒緣","再抽一次"] , correct:1 }
+    ];
+
+    let lives = 3;
+    let idx = 0;
+
+    const qEl = document.getElementById('question');
+    const aBtn = document.getElementById('optA');
+    const bBtn = document.getElementById('optB');
+    const livesEl = document.getElementById('lives');
+    const endEl = document.getElementById('end');
+
+    function render(){
+      if(idx >= QUESTIONS.length){
+        qEl.textContent = "非常好";
+        aBtn.style.display = bBtn.style.display = 'none';
+        endEl.textContent = "再抽一個禮物吧💞";
+        return;
+      }
+      qEl.textContent = QUESTIONS[idx].q;
+      aBtn.textContent = QUESTIONS[idx].a[0];
+      bBtn.textContent = QUESTIONS[idx].a[1];
+    }
+
+    function answer(choice){
+      if(choice === QUESTIONS[idx].correct){
+        idx++;
+        render();
+      } else {
+        lives--;
+        livesEl.textContent = lives;
+        if(lives <= 0){
+          qEl.textContent = "💔 你在亂答!";
+          aBtn.style.display = bBtn.style.display = 'none';
+          endEl.textContent = "但我還是要說…第二個禮物原本就是你的了！🥰";
+        }
+      }
+    }
+
+    aBtn.addEventListener('click', ()=>answer(0));
+    bBtn.addEventListener('click', ()=>answer(1));
+
+    render();
+  </script>
+</body>
+</html>
