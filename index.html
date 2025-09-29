@@ -15,7 +15,7 @@
 </head>
 <body>
   <h1>💖 能不能拿到第二個禮物就看你自己了 💖</h1>
-  <div class="lives">剩餘亂達次數：<span id="lives">3</span></div>
+  <div class="lives">剩餘亂答次數：<span id="lives">3</span></div>
   <div class="question" id="question"></div>
   <div>
     <button class="btn" id="optA"></button>
@@ -24,6 +24,7 @@
   <div class="end" id="end"></div>
 
   <script>
+    // 題目
     const QUESTIONS = [
       { q: "想要第二個禮物嗎", a:["考慮一下","看你的表現"] , correct:1 },
       { q: "第一次見面我們在哪裡？", a:["新左營站","左營站"], correct:0 },
@@ -46,6 +47,43 @@
     const livesEl = document.getElementById('lives');
     const endEl = document.getElementById('end');
 
+    // ====== 音效：用 Web Audio API 產生（免額外檔案） ======
+    const AudioKit = (() => {
+      let ctx;
+      function getCtx(){
+        if(!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+        return ctx;
+      }
+      function beep({freq=880, duration=0.18, type='sine', volume=0.3}){
+        const c = getCtx();
+        const o = c.createOscillator();
+        const g = c.createGain();
+        o.type = type; o.frequency.value = freq;
+        g.gain.value = volume;
+        o.connect(g); g.connect(c.destination);
+        const now = c.currentTime;
+        // 簡單的包絡線（避免爆音）
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(volume, now + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+        o.start(now);
+        o.stop(now + duration + 0.02);
+      }
+      function correct(){
+        // 兩聲上滑的可愛提示音
+        beep({freq: 740, duration: 0.12, type:'sine', volume:0.25});
+        setTimeout(()=>beep({freq: 988, duration: 0.16, type:'sine', volume:0.25}), 120);
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
+      function wrong(){
+        // 低頻嗡鳴 + 衰減，像錯誤提示
+        beep({freq: 220, duration: 0.22, type:'square', volume:0.2});
+        setTimeout(()=>beep({freq: 180, duration: 0.18, type:'square', volume:0.18}), 120);
+        if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+      }
+      return { correct, wrong };
+    })();
+
     function render(){
       if(idx >= QUESTIONS.length){
         qEl.textContent = "非常好";
@@ -60,9 +98,11 @@
 
     function answer(choice){
       if(choice === QUESTIONS[idx].correct){
+        AudioKit.correct();
         idx++;
         render();
       } else {
+        AudioKit.wrong();
         lives--;
         livesEl.textContent = lives;
         if(lives <= 0){
